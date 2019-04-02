@@ -9,6 +9,8 @@ let rec interp env = function
 
   | Val (Bool b) -> Bool b
 
+  | Val (Arr (v, t, e)) -> Arr (v, t, e)
+
   (* E-SE-PLVAL *)
   | Plus (Val (Num a), Val (Num b)) -> Num (a + b)
 
@@ -94,3 +96,23 @@ let rec interp env = function
   | Let (x, e1, e2) ->
      let e1' = interp env e1 in
      interp env (Let (x, Val e1', e2))
+
+  (* EF-SE-LAM*)
+  | Lam (x, t, e) -> Arr (x, t, e)
+
+  (* EF-SE-APL *)
+  | Ap (Val (Arr (x, _, e)) , Val e2) ->
+     let env' = bind env x e2 in
+     interp env' e
+
+  (* EF-SE-APR *)
+  | Ap (Val e1, e2) ->
+     let e2' = interp env e2 in
+     interp env (Ap (Val e1, Val e2'))
+     
+  (* EF-SE-AP *)
+  | Ap (e1, e2) ->
+     let e1' = interp env e1 in
+     interp env (Ap (Val e1', e2))
+
+let empty_env x = failwith (Format.sprintf "Could not find variable '%s' in evaluation environment" x)
