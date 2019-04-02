@@ -20,59 +20,60 @@ let rec type_of_syntax_type = function
   | AST.Function (l, r) -> Function (type_of_syntax_type l, type_of_syntax_type r)
 
 let rec type_check env = function
-  (* E-TY-VAR *)
+  (* EF-TY-VAR *)
   | Var v -> env v
 
-  (* E-TY-LET *)
+  (* EF-TY-LET *)
   | Let (x, e1, e2) ->
      let x_ty = type_check env e1 in
      let env' = bind env x x_ty in
      type_check env' e2
     
-  (* E-TY-NUM *)
+  (* EF-TY-NUM *)
   | Val (Num _) -> Number
 
-  (* E-TY-STR *)
+  (* EF-TY-STR *)
   | Val (Str _) -> String
 
-  (* E-TY-TT *)
+  (* EF-TY-TT *)
   | Val (Bool true) -> Boolean
 
-  (* E-TY-TT *)
+  (* EF-TY-TT *)
   | Val (Bool false) -> Boolean
 
+  (* EF-TY-FUN *)
   | Val (Arr (_, t, e)) -> type_of_syntax_type t
 
-  (* E-TY-PLUS *)
+  (* EF-TY-PLUS *)
   | Plus (e1, e2) ->
      assert (type_check env e1 = Number);
      assert (type_check env e2 = Number);
      Number
 
-  (* E-TY-TIMES *)
+  (* EF-TY-TIMES *)
   | Times (e1, e2) ->
      assert (type_check env e1 = Number);
      assert (type_check env e2 = Number);
      Number
 
-  (* E-TY-CAT *)
+  (* EF-TY-CAT *)
   | Cat (e1, e2) ->
      assert (type_check env e1 = String);
      assert (type_check env e2 = String);
      String
 
-  (* E-TY-LEN *)
+  (* EF-TY-LEN *)
   | Length e ->
      assert (type_check env e = String);
      Number
 
-  (* E-TY-EQ *)
+  (* EF-TY-EQ *)
   | Equal (e1, e2) ->
      assert (type_check env e1 = Number);
      assert (type_check env e2 = Number);
      Boolean
 
-  (* E-TY-ITE *)
+  (* EF-TY-ITE *)
   | Ite (e, e1, e2) ->
      assert (type_check env e = Boolean);
      let e1_t = type_check env e1 in
@@ -80,12 +81,14 @@ let rec type_check env = function
      assert (e1_t = e2_t);
      e1_t
 
+  (* EF-TY-LAM *)
   | Lam (x, t1, e) ->
      let t1 = type_of_syntax_type t1 in
      let env' = bind env x t1 in
      let t2 = type_check env' e in
      Function (t1, t2)
 
+  (* EF-TY-AP *)
   | Ap (e1, e2) ->
      begin
        match (type_check env e1) with
