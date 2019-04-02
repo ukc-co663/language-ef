@@ -31,7 +31,7 @@ expr: v=VAR { Var v }
     | LPAREN e1=expr PLUS e2=expr RPAREN { Plus (e1, e2) }
     | LPAREN e1=expr TIMES e2=expr RPAREN { Times (e1, e2) }
     | LPAREN e1=expr CONCAT e2=expr RPAREN { Cat (e1, e2) }
-    | BAR e=expr BAR { Printf.printf "LENGTH\n"; Length e }
+    | BAR e=expr BAR { Length e }
     | IF e=expr THEN e1=expr ELSE e2=expr { Ite (e, e1, e2) }
     | LET v=VAR BE e1=expr IN e2=expr { Let (v, e1, e2) }
     | LAMBDA LBRACE t=syntax_type RBRACE LPAREN x=VAR RPAREN SUCHTHAT e=expr { Lam (x, t, e) }
