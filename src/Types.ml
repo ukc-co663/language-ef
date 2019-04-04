@@ -5,20 +5,28 @@ type t =
 | String
 | Boolean
 | Function of t*t
+| L of t
+| Bot
 
 let rec pp_type fmt = function
     Number -> Format.fprintf fmt "num"
   | String -> Format.fprintf fmt "str"
   | Boolean -> Format.fprintf fmt "bool"
-  | Function (t1, t2) ->
-     Format.fprintf fmt "(%a -> %a)" pp_type t1 pp_type t2
+  | Function (t1, t2) -> Format.fprintf fmt "(%a -> %a)" pp_type t1 pp_type t2
+  | L t -> Format.fprintf fmt "%a list" pp_type t
+  | Bot -> Format.fprintf fmt "'a"
 
 let rec type_of_syntax_type = function
     AST.Number -> Number
   | AST.String -> String
   | AST.Boolean -> Boolean
   | AST.Function (l, r) -> Function (type_of_syntax_type l, type_of_syntax_type r)
+  | AST.List t -> L (type_of_syntax_type t)
+  | AST.Bottom -> Bot
 
+let type_compatible a b =
+  a = b || b = Bot
+  
 let rec type_check env = function
   (* EF-TY-VAR *)
   | Var v -> env v
@@ -38,8 +46,16 @@ let rec type_check env = function
   (* EF-TY-TT *)
   | Val (Bool true) -> Boolean
 
-  (* EF-TY-TT *)
+  (* EF-TY-TF *)
   | Val (Bool false) -> Boolean
+
+  | Val (List []) -> Bot
+
+  | Val (List (a::bs)) ->
+     let ta = type_check env (Val a) in
+     let tb = type_check env (Val (List bs)) in
+     assert (type_compatible ta tb);
+     L ta
 
   (* EF-TY-FUN *)
   | Val (Arr (_, t, e)) -> type_of_syntax_type t
@@ -99,8 +115,32 @@ let rec type_check env = function
        | _ -> failwith "Cannot apply argument to non-function!"
      end
 
+  | Empty -> Bot
+
+  | Cons (e1, e2) ->
+     let t1 = type_check env e1 in
+     let t2 = type_check env e2 in
+     assert (type_compatible (L t1) t2);
+     L t1
+
+  | Case (e0, x, y, e1, Empty) ->
+     let t0 = type_check env e0 in
+     let env' = bind env x Bot in
+     let env'' = bind env' y (L Bot) in
+     let t1 = type_check env'' e1 in
+     assert(t0 = t1);
+     t0
+
+  | Case (e0, x, y, e1, Cons (a, b)) ->
+     let t0 = type_check env e0 in
+     let env' = bind env x (type_check env a) in
+     let env'' = bind env' y (type_check env b) in
+     let t1 = type_check env'' e1 in
+     assert(t0 = t1);
+     t0
+
+  | Case (_, _, _, _, _) ->
+     assert false
+     
     
 let empty_env x = failwith (Format.sprintf "Could not find variable '%s' in type environment" x)
-
-
-(* let f be \ {num -> num} (x) . (x+3) in (f) (3)  *)

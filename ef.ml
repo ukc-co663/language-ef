@@ -18,7 +18,6 @@ let parse lexbuf =
     end
 
 let () =
-  (* let lexbuf = Lexing.from_string "4 + |\"Hello!\"|" in *)
   let lexbuf = Lexing.from_channel stdin in
   let ast = parse lexbuf in
   let t = Types.type_check Types.empty_env ast in

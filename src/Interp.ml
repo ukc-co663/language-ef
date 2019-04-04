@@ -11,6 +11,8 @@ let rec interp env = function
 
   | Val (Arr (v, t, e)) -> Arr (v, t, e)
 
+  | Val (List l) -> List l
+
   (* EF-SE-PLVAL *)
   | Plus (Val (Num a), Val (Num b)) -> Num (a + b)
 
@@ -115,4 +117,27 @@ let rec interp env = function
      let e1' = interp env e1 in
      interp env (Ap (Val e1', e2))
 
+  | Cons (Val e1, Val (List e2)) ->
+     List (e1 :: e2)
+
+  | Cons (Val e1, e2) ->
+     let e2' = interp env e2 in
+     interp env (Cons (Val e1, Val e2'))
+
+  | Cons (e1, e2) ->
+     let e1' = interp env e1 in
+     interp env (Cons (Val e1', e2))
+
+  | Empty -> List []
+
+  | Case (e0, x, y, e1, Val (List [])) ->
+     interp env e0
+
+  | Case (e0, x, y, e1, Val (List (a::b))) ->
+     let env' = bind env x a in
+     let env'' = bind env' y (List b) in
+     interp env'' e1
+
+  | Case (_, _, _, _, _) -> failwith "Type error! Case of expression which is not a list."
+     
 let empty_env x = failwith (Format.sprintf "Could not find variable '%s' in evaluation environment" x)
