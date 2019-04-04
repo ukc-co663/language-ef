@@ -27,6 +27,8 @@ let id = ['a'-'z' 'A'-'Z' '_'] ['a'-'z' 'A'-'Z' '0'-'9']*
 let ws = [' ' '\t' '\r']+
 let num = ['0'-'9']+
 let arrow = '-' '>'
+let cons = ':' ':'
+let emptylist = '[' ']'
 let quoted_string = '"' [^'"']* '"'
 
 rule token = parse
@@ -43,6 +45,8 @@ rule token = parse
   | '+' { PLUS }
   | '*' { TIMES }
   | '|' { BAR }
+  | cons { CONS }
+  | emptylist { EMPTY_LIST }
   | arrow { ARROW }
   | quoted_string as s { QUOTED_STRING (strip_quotes s) }
   | num as x { INT (int_of_string x) }
