@@ -12,7 +12,7 @@
 %token LET BE IN
 %token LAMBDA SUCHTHAT
 %token STRING_TYPE NUMBER_TYPE BOOLEAN_TYPE ARROW
-%token CONS EMPTY_LIST
+%token CONS EMPTY_LIST CASE SEMI COMMA
 %token EOF
 
 %start <AST.expression> expr
@@ -39,5 +39,7 @@ expr: v=VAR { Var v }
     | LET v=VAR BE e1=expr IN e2=expr { Let (v, e1, e2) }
     | LAMBDA LBRACE t=syntax_type RBRACE LPAREN x=VAR RPAREN SUCHTHAT e=expr { Lam (x, t, e) }
     | LPAREN e1=expr RPAREN LPAREN e2=expr RPAREN { Ap (e1, e2) }
+    | CASE LBRACE e0=expr SEMI LPAREN x=VAR COMMA y=VAR RPAREN ARROW e1=expr RBRACE LPAREN e=expr RPAREN
+          { Case (e0, x, y, e1, e) }
     | EOF { failwith "Unexpected end of file!" }
     ;

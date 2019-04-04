@@ -16,6 +16,7 @@
 	; "str", STRING_TYPE
 	; "num", NUMBER_TYPE
 	; "bool", BOOLEAN_TYPE
+	; "case", CASE
 	];
     try Hashtbl.find table x
     with Not_found -> VAR x
@@ -45,6 +46,8 @@ rule token = parse
   | '+' { PLUS }
   | '*' { TIMES }
   | '|' { BAR }
+  | ';' { SEMI }
+  | ',' { COMMA }
   | cons { CONS }
   | emptylist { EMPTY_LIST }
   | arrow { ARROW }

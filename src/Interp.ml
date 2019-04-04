@@ -130,7 +130,7 @@ let rec interp env = function
 
   | Empty -> List []
 
-  | Case (e0, x, y, e1, Val (List [])) ->
+  | Case (e0, x, y, e1, Empty) ->
      interp env e0
 
   | Case (e0, x, y, e1, Val (List (a::b))) ->
